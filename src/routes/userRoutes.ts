@@ -3,6 +3,9 @@ const passport = require('../config/passport');
 import express from 'express';
 import { userController } from '../controllers/userController';
 import { authenticateJWT, authenticatedAdmin } from '../middleware/auth';
+import { apiListController } from '../controllers/apiListController';
+import { siteListController } from '../controllers/siteListController';
+import { dataController } from '../controllers/dataController';
 
 const router = express.Router();
 
@@ -14,9 +17,22 @@ router.post('/signup', userController.signUp);
 router.patch('/users/:id', authenticateJWT, userController.updateUserInfo);
 
 // api list table 相關
-router.get('/apilist', authenticateJWT, userController.browseApiList);
-router.post('/apilist/create', authenticateJWT, authenticatedAdmin, userController.addApiList);
-router.patch('/apilist/edit/:id', authenticateJWT, authenticatedAdmin, userController.editApiList);
-router.get('/apilist/:id', authenticateJWT, userController.getApiListById);
+router.get('/apilist', authenticateJWT, apiListController.browseApiList);
+router.post('/apilist/create', authenticateJWT, authenticatedAdmin, apiListController.addApiList);
+router.patch(
+  '/apilist/edit/:id',
+  authenticateJWT,
+  authenticatedAdmin,
+  apiListController.editApiList,
+);
+router.get('/apilist/:id', authenticateJWT, apiListController.getApiListById);
+
+// site list
+router.get('/sitelist', authenticateJWT, siteListController.getSites);
+router.get('/site/devices/:id', authenticateJWT, siteListController.getSiteDevices);
+
+// data
+router.get('/rawdata/tables', authenticateJWT, dataController.getRawDataTables);
+router.get('/rawdata/table', authenticateJWT, dataController.getRawData);
 
 export default router;

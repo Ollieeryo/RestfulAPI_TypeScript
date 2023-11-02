@@ -27,3 +27,20 @@ model APIList {
   password    String?
   key         String?
 }
+
+model Site {
+  siteId  Int     @id
+  name    String  @unique
+  country String?
+}
+
+model DataETL {
+  siteId      Int
+  name        String
+  description String
+  deviceId    String  @id
+  deviceType  Int
+  deviceLogic Int
+  gatewayId   Int
+  remark      String?
+}

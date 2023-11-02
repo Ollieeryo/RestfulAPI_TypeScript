@@ -14,15 +14,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userController = void 0;
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const databaseService_1 = __importDefault(require("../services/databaseService"));
+const prisma = new client_1.PrismaClient();
 // 環境變數需要設型別，有可能是 undefined
 const tokenSecretKey = process.env.JWT_SECRET_KEY;
 // 註冊、登入、權限不同
-const signIn = ({ req, res }) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password } = req.body;
+const signIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const { email, password } = req.body;
         if (tokenSecretKey && typeof tokenSecretKey === 'string') {
             if (!email || !password) {
                 return res.status(400).json({ message: 'Username and Password must have value' });
@@ -35,6 +36,7 @@ const signIn = ({ req, res }) => __awaiter(void 0, void 0, void 0, function* () 
                     role: true,
                 },
             });
+            //  因為 TS 的規則，所以加上 user 是 false 的情況
             if (!user) {
                 return res.status(404).json({ message: 'user not found' });
             }
@@ -44,11 +46,10 @@ const signIn = ({ req, res }) => __awaiter(void 0, void 0, void 0, function* () 
                 expiresIn: '30d',
             });
             const data = {
-                token,
+                token: token,
                 userId: user.userId,
-                userName: user.email,
+                email: user.email,
                 role: user.role,
-                message: 'Login successful',
             };
             res.status(200).json(data);
         }
@@ -57,57 +58,60 @@ const signIn = ({ req, res }) => __awaiter(void 0, void 0, void 0, function* () 
         console.error('Error during login:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
+    finally {
+        (0, databaseService_1.default)(prisma);
+    }
 });
-// 註冊一般使用者，權限 2
-// signUp: async ({ req, res }: Params) => {
-//   const { email, password, confirmPassword }: AuthRequestBody = req.body;
-//   try {
-//     if (tokenSecretKey && typeof tokenSecretKey === 'string') {
-//       // 檢查用戶是否已存在
-//       const existingUser = await prisma.User.findUnique({
-//         where: { email },
-//       });
-//       if (existingUser) {
-//         return res.status(400).json({ message: 'Username already exists' });
-//       }
-//       // 檢查密碼輸入是否相同
-//       if (password !== confirmPassword) {
-//         return res
-//           .status(400)
-//           .json({ message: 'Password and confirmPassword must be same value' });
-//       }
-//       // 使用 bcrypt 對密碼進行哈希加密
-//       const hashedPassword = await bcrypt.hash(password, 10);
-//       // 創建新用戶
-//       const newUser = await prisma.users.create({
-//         data: {
-//           username: username,
-//           password: hashedPassword,
-//           role: 2, // 根據需求設置權限
-//         },
-//       });
-//       // 生成 JWT token
-//       const token = jwt.sign(
-//         { id: newUser.id, username: newUser.username, role: newUser.role },
-//         tokenSecretKey,
-//         {
-//           expiresIn: '1d',
-//         },
-//       );
-//       const data = {
-//         token,
-//         userId: newUser.id,
-//         userName: newUser.username,
-//         role: newUser.role,
-//       };
-//       res.status(201).json({ data, message: 'Registration successful' });
-//     }
-//   } catch (error) {
-//     console.error('Error during registration:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// },
-const updateUserInfo = ({ req, res }) => __awaiter(void 0, void 0, void 0, function* () {
+// 註冊一般使用者，權限 user
+const signUp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { role, email, password, confirmPassword } = req.body;
+    try {
+        // 產生 jwt token 需要 tokenSecretKey
+        if (tokenSecretKey && typeof tokenSecretKey === 'string') {
+            // 檢查用戶是否已存在
+            const existingUser = yield prisma.userList.findUnique({
+                where: { email },
+            });
+            // 檢查 email 是否已經被註冊
+            if (existingUser) {
+                return res.status(400).json({ message: 'Email already exists, try to use another' });
+            }
+            // 檢查密碼輸入是否相同
+            if (password !== confirmPassword) {
+                return res.status(400).json({ message: 'Password and ConfirmPassword must be same value' });
+            }
+            // 使用 bcrypt 對密碼進行哈希加密
+            const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
+            // 創建新用戶
+            const newUser = yield prisma.userList.create({
+                data: {
+                    email: email,
+                    password: hashedPassword,
+                    role: role, // 根據需求設置權限
+                },
+            });
+            // 生成 JWT token
+            const token = jsonwebtoken_1.default.sign({ userId: newUser.userId, email: newUser.email, role: newUser.role }, tokenSecretKey, {
+                expiresIn: '30d',
+            });
+            const data = {
+                token,
+                userId: newUser.userId,
+                email: newUser.email,
+                role: newUser.role,
+            };
+            res.status(201).json({ data, message: 'Registration successful' });
+        }
+    }
+    catch (error) {
+        console.error('Error during registration:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+    finally {
+        (0, databaseService_1.default)(prisma);
+    }
+});
+const updateUserInfo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = parseInt(req.params.id);
     const { email, password } = req.body;
     try {
@@ -128,7 +132,7 @@ const updateUserInfo = ({ req, res }) => __awaiter(void 0, void 0, void 0, funct
         });
         res.status(200).json({
             userId: updatedUser.userId,
-            userName: updatedUser.email,
+            email: updatedUser.email,
             message: 'User information updated',
         });
     }
@@ -136,8 +140,18 @@ const updateUserInfo = ({ req, res }) => __awaiter(void 0, void 0, void 0, funct
         console.error('Error during user info update:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
+    finally {
+        (0, databaseService_1.default)(prisma);
+    }
 });
+// 驗證 token 是否有效
+const verifyToken = (req, res) => {
+    // 能進行到這代表通過 middleware jwt token 驗證
+    res.status(200).json({ message: 'Token is valid' });
+};
 exports.userController = {
     signIn,
+    signUp,
     updateUserInfo,
+    verifyToken,
 };

@@ -3,11 +3,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const passport_1 = __importDefault(require("passport"));
+const passport = require('../config/passport');
 const express_1 = __importDefault(require("express"));
-const userController_1 = require("@/src/controllers/userController");
-const auth_1 = require("@/src/middleware/auth");
+const userController_1 = require("../controllers/userController");
+const auth_1 = require("../middleware/auth");
+const apiListController_1 = require("../controllers/apiListController");
+const siteListController_1 = require("../controllers/siteListController");
+const dataController_1 = require("../controllers/dataController");
 const router = express_1.default.Router();
 // 先在 local 用 bcrypt 進行 hash 密碼比對驗證(使用者輸入密碼、資料庫密碼)，因為登入時沒有 JWT 所以不需要驗證
-router.post('/signin', passport_1.default.authenticate('local', { session: false }), auth_1.authenticatedAdmin, auth_1.authenticatedModerator, auth_1.authenticatedUser, userController_1.userController.signIn);
+router.post('/signin', passport.authenticate('local', { session: false }), userController_1.userController.signIn);
+// 只用來驗證 token 是否有效
+router.get('/token/verify', auth_1.authenticateJWT, userController_1.userController.verifyToken);
+router.post('/signup', userController_1.userController.signUp);
+router.patch('/users/:id', auth_1.authenticateJWT, userController_1.userController.updateUserInfo);
+// api list table 相關
+router.get('/apilist', auth_1.authenticateJWT, apiListController_1.apiListController.browseApiList);
+router.post('/apilist/create', auth_1.authenticateJWT, auth_1.authenticatedAdmin, apiListController_1.apiListController.addApiList);
+router.patch('/apilist/edit/:id', auth_1.authenticateJWT, auth_1.authenticatedAdmin, apiListController_1.apiListController.editApiList);
+router.get('/apilist/:id', auth_1.authenticateJWT, apiListController_1.apiListController.getApiListById);
+// site list
+router.get('/sitelist', auth_1.authenticateJWT, siteListController_1.siteListController.getSites);
+router.get('/site/devices/:id', auth_1.authenticateJWT, siteListController_1.siteListController.getSiteDevices);
+// data
+router.get('/rawdata/tables', auth_1.authenticateJWT, dataController_1.dataController.getRawDataTables);
+router.get('/rawdata/table', auth_1.authenticateJWT, dataController_1.dataController.getRawData);
 exports.default = router;

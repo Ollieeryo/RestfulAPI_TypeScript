@@ -49,11 +49,11 @@ passport_1.default.use(new JWTStrategy(jwtOptions, (jwtPayload, cb) => __awaiter
     // 在這裡處理 JWT 身份驗證結果，然後調用 cb 來通知 Passport 結果
     try {
         const user = yield prisma.userList.findUnique({
-            where: { userId: jwtPayload.id },
+            where: { userId: jwtPayload.userId },
         });
         if (!user) {
             // 找不到使用者，返回錯誤訊息
-            return cb('User not found', false);
+            return cb(new Error('User not found'), false);
         }
         return cb(null, user);
     }
