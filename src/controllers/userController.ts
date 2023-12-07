@@ -44,7 +44,7 @@ const signIn = async (req: Request, res: Response) => {
 
       // 生成 JWT token
       const token = jwt.sign(user, tokenSecretKey, {
-        expiresIn: '30d',
+        expiresIn: '1d',
       });
 
       const data = {

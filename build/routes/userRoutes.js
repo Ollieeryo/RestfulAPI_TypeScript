@@ -25,7 +25,18 @@ router.get('/apilist/:id', auth_1.authenticateJWT, apiListController_1.apiListCo
 // site list
 router.get('/sitelist', auth_1.authenticateJWT, siteListController_1.siteListController.getSites);
 router.get('/site/devices/:id', auth_1.authenticateJWT, siteListController_1.siteListController.getSiteDevices);
-// data
+// RawData
 router.get('/rawdata/tables', auth_1.authenticateJWT, dataController_1.dataController.getRawDataTables);
-router.get('/rawdata/table', auth_1.authenticateJWT, dataController_1.dataController.getRawData);
+router.get('/rawdata/table/limit', auth_1.authenticateJWT, dataController_1.dataController.getRawData);
+router.get('/rawdata/table/gatewayid', auth_1.authenticateJWT, dataController_1.dataController.getRawDataTableGatewayId);
+router.get('/rawdata/table', auth_1.authenticateJWT, dataController_1.dataController.getRawDataByGatewayId);
+router.get('/rawdata/:tableNameFrom/:tableNameTo/:gatewayId/:dateFrom/:dateTo', auth_1.authenticateJWT, dataController_1.dataController.getRawDataByMonthAndDate);
+// DataETL
+router.get('/dataetl/names/:siteId', auth_1.authenticateJWT, dataController_1.dataController.getSiteOwnedNameByDataEtl);
+router.get('/dataetl/:tableName/:gatewayId', auth_1.authenticateJWT, dataController_1.dataController.getDataEtlByGatewayId);
+router.get('/dataetl/:tableNameFrom/:tableNameTo/:gatewayId/:deviceName/:dateFrom/:dateTo', auth_1.authenticateJWT, dataController_1.dataController.getDataEtlByMonthAndDate);
+// DataPlatform
+router.get('/dataplatform/names/:siteId', auth_1.authenticateJWT, dataController_1.dataController.getSiteOwnedNameByDataPlatform);
+router.get('/dataplatform/:tableName/:siteId', auth_1.authenticateJWT, dataController_1.dataController.getDataPlatformBySiteIdAndName);
+router.get('/dataplatform/:tableNameFrom/:tableNameTo/:siteId/:deviceName/:dateFrom/:dateTo', auth_1.authenticateJWT, dataController_1.dataController.getDataPlatformByMonthAndDate);
 exports.default = router;

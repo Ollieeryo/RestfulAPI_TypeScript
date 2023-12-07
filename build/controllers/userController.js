@@ -43,7 +43,7 @@ const signIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             // 確認使用者存不存在和密碼有無錯誤由 passport 來處理
             // 生成 JWT token
             const token = jsonwebtoken_1.default.sign(user, tokenSecretKey, {
-                expiresIn: '30d',
+                expiresIn: '1d',
             });
             const data = {
                 token: token,
