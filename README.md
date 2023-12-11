@@ -14,3 +14,4 @@ Main tool
 * bcryptjs
 * Prisma
 * MySQL
+* Docker
