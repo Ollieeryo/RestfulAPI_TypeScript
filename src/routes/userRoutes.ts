@@ -6,6 +6,7 @@ import { authenticateJWT, authenticatedAdmin } from '../middleware/auth';
 import { apiListController } from '../controllers/apiListController';
 import { siteListController } from '../controllers/siteListController';
 import { dataController } from '../controllers/dataController';
+import { pythonController } from '../controllers/pythonController';
 
 const router = express.Router();
 
@@ -67,5 +68,8 @@ router.get(
   authenticateJWT,
   dataController.getDataPlatformByMonthAndDate,
 );
+
+//Python
+router.get('/run-python-script', pythonController.runPythonScript);
 
 export default router;

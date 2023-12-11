@@ -10,6 +10,7 @@ const auth_1 = require("../middleware/auth");
 const apiListController_1 = require("../controllers/apiListController");
 const siteListController_1 = require("../controllers/siteListController");
 const dataController_1 = require("../controllers/dataController");
+const pythonController_1 = require("../controllers/pythonController");
 const router = express_1.default.Router();
 // 先在 local 用 bcrypt 進行 hash 密碼比對驗證(使用者輸入密碼、資料庫密碼)，因為登入時沒有 JWT 所以不需要驗證
 router.post('/signin', passport.authenticate('local', { session: false }), userController_1.userController.signIn);
@@ -39,4 +40,6 @@ router.get('/dataetl/:tableNameFrom/:tableNameTo/:gatewayId/:deviceName/:dateFro
 router.get('/dataplatform/names/:siteId', auth_1.authenticateJWT, dataController_1.dataController.getSiteOwnedNameByDataPlatform);
 router.get('/dataplatform/:tableName/:siteId', auth_1.authenticateJWT, dataController_1.dataController.getDataPlatformBySiteIdAndName);
 router.get('/dataplatform/:tableNameFrom/:tableNameTo/:siteId/:deviceName/:dateFrom/:dateTo', auth_1.authenticateJWT, dataController_1.dataController.getDataPlatformByMonthAndDate);
+//Python
+router.get('/run-python-script', pythonController_1.pythonController.runPythonScript);
 exports.default = router;
