@@ -1,5 +1,5 @@
 # 使用 Node.js 18 作為基礎映像
-FROM node:18.18.2 AS builder
+FROM node:lts AS builder
 
 # RUN apt-get install python3-pip -y
 
@@ -23,7 +23,7 @@ RUN yarn build
 
 # production
 
-FROM node:18.18.2-slim AS final
+FROM node:lts AS final
 
 WORKDIR /app
 

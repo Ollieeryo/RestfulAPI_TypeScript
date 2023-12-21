@@ -51,6 +51,11 @@ router.get(
   authenticateJWT,
   dataController.getDataEtlByMonthAndDate,
 );
+router.get(
+  '/dataetl/:tableName/:gatewayId/:deviceName/:date',
+  authenticateJWT,
+  dataController.getDataEtlByDateAndTime,
+);
 
 // DataPlatform
 router.get(
@@ -67,6 +72,11 @@ router.get(
   '/dataplatform/:tableNameFrom/:tableNameTo/:siteId/:deviceName/:dateFrom/:dateTo',
   authenticateJWT,
   dataController.getDataPlatformByMonthAndDate,
+);
+router.get(
+  '/dataplatform/:tableName/:siteId/:deviceName/:date',
+  authenticateJWT,
+  dataController.getDataPlatformByDateAndTime,
 );
 
 //Python

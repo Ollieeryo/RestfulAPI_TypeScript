@@ -1,4 +1,15 @@
-dist
-build
+# 忽略不需要的檔案和目錄
+
 node_modules
+build
+dist
+*.log
+.vscode
+.devcontainer
+.DS_Store
+.git
+.gitignore
+.eslintrc.json
+.prettierrc.json
+.prettierignore
 README.md

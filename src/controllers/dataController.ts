@@ -3,6 +3,18 @@ import { Request, Response } from 'express';
 import { Datasource } from '@prisma/client/runtime/library';
 import prismaDisconnect from '../services/databaseService';
 
+// const prisma = new PrismaClient({
+//   datasources: {
+//     dbRawData: { url: process.env.RAWDATA_URL },
+//     dbRawData2023: { url: process.env.RAWDATA2023_URL },
+//     dbDataEtl: { url: process.env.DATAETL_URL },
+//     dbDataEtl2023: { url: process.env.DATAETL2023_URL },
+//     dbDataPlatform: { url: process.env.DATAPLATFORM_URL },
+//     dbDataPlatform2023: { url: process.env.DATAPLATFORM2023_URL },
+//     dbMgmtEtl: { url: process.env.MGMTETL_URL },
+//   },
+// });
+
 const rawData: Datasource = {
   url: process.env.RAWDATA_URL,
 };
@@ -195,7 +207,6 @@ const getDataEtlByGatewayId = async (req: Request, res: Response) => {
   }
 };
 
-// 還沒使用的 API router 還沒寫(參考getDataPlatformByMonthAndDate)
 const getDataEtlByMonthAndDate = async (req: Request, res: Response) => {
   try {
     const tableNameFrom = req.params.tableNameFrom;
@@ -210,6 +221,29 @@ const getDataEtlByMonthAndDate = async (req: Request, res: Response) => {
     )} WHERE DATE(ts) BETWEEN ${dateFrom} AND ${dateTo} AND gatewayId=${gatewayId} AND name=${deviceName} UNION SELECT * FROM ${Prisma.raw(
       tableNameTo,
     )} WHERE DATE(ts) BETWEEN ${dateFrom} AND ${dateTo} AND gatewayId=${gatewayId} AND name=${deviceName} ORDER BY ts DESC LIMIT 1000`;
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error during fetching:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    prismaDisconnect(prismaDataEtl2023);
+  }
+};
+
+// 選擇特定一天 + 時間範圍
+const getDataEtlByDateAndTime = async (req: Request, res: Response) => {
+  try {
+    const tableName = req.params.tableName;
+    const date = req.params.date;
+    const gatewayId = req.params.gatewayId;
+    const deviceName = req.params.deviceName;
+    const timeFrom = req.query.timeFrom;
+    const timeEnd = req.query.timeEnd;
+
+    const data = await prismaDataEtl2023.$queryRaw`SELECT * FROM ${Prisma.raw(
+      tableName,
+    )} WHERE DATE(ts)=${date} AND gatewayId=${gatewayId} AND name=${deviceName} AND TIME(ts) BETWEEN ${timeFrom} AND ${timeEnd} ORDER BY ts DESC LIMIT 1000`;
 
     res.json(data);
   } catch (error) {
@@ -281,6 +315,28 @@ const getDataPlatformByMonthAndDate = async (req: Request, res: Response) => {
   }
 };
 
+const getDataPlatformByDateAndTime = async (req: Request, res: Response) => {
+  try {
+    const tableName = req.params.tableName;
+    const date = req.params.date;
+    const siteId = req.params.siteId;
+    const deviceName = req.params.deviceName;
+    const timeFrom = req.query.timeFrom;
+    const timeEnd = req.query.timeEnd;
+
+    const data = await prismaDataPlatform2023.$queryRaw`SELECT * FROM ${Prisma.raw(
+      tableName,
+    )} WHERE DATE(ts)=${date} AND siteId=${siteId} AND name=${deviceName} AND TIME(ts) BETWEEN ${timeFrom} AND ${timeEnd} ORDER BY ts DESC LIMIT 1000`;
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error during fetching:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    prismaDisconnect(prismaDataPlatform2023);
+  }
+};
+
 export const dataController = {
   getRawDataTables,
   getRawData,
@@ -290,7 +346,9 @@ export const dataController = {
   getSiteOwnedNameByDataPlatform,
   getDataEtlByGatewayId,
   getDataEtlByMonthAndDate,
+  getDataEtlByDateAndTime,
   getDataPlatformBySiteIdAndName,
   getDataPlatformByMonthAndDate,
+  getDataPlatformByDateAndTime,
   getSiteOwnedNameByDataEtl,
 };
