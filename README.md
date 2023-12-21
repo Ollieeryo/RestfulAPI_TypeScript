@@ -1,6 +1,6 @@
 # RestfulAPI_TypeScript
 
-For the purpose of practice design Restful API, TypeScript and express.js with MySQL(Prisma) Database
+For the purpose of practice design Restful API, TypeScript and express.js with MySQL Database
 
 Main tool
 * node.js
